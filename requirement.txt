@@ -1,0 +1,157 @@
+Title: Marketing Text-to-SQL Agent (POC)
+Objective
+
+Build a Proof-of-Concept (POC) conversational agent that converts natural language queries into SQL, executes them on a local SQLite database, and returns both tabular and visual insights.
+
+Functional Requirements
+1. Chat Interface (UI/UX)
+
+Develop a lightweight web-based chat interface (e.g., Streamlit).
+
+Users should be able to:
+
+Enter natural language questions.
+
+View responses in both text and tabular format.
+
+View generated visualizations (charts/graphs).
+
+2. Sample Dataset Creation
+
+Create a sample CSV dataset representing a marketing domain.
+
+Suggested fields:
+
+campaign_id
+
+campaign_name
+
+channel (Email, Social, Paid Ads, etc.)
+
+impressions
+
+clicks
+
+conversions
+
+spend
+
+revenue
+
+date
+
+3. Database Setup
+
+Load the CSV data into an in-memory or file-based SQLite database using Python.
+
+Ensure:
+
+Proper schema creation.
+
+Data is queryable via SQL.
+
+4. Orchestration Framework
+
+Use LangChain for:
+
+Agent orchestration
+
+Tool integration (SQL execution, visualization)
+
+Prompt chaining and memory (if needed)
+
+5. LLM Integration
+
+Use Claude Sonnet or Claude Opus for:
+
+Converting user queries (natural language) into SQL.
+
+Generating explanations of results.
+
+Ensure prompts guide the model to:
+
+Generate valid SQLite-compatible SQL.
+
+Avoid unsafe or non-supported operations.
+
+6. Visualization Support
+
+Generate charts based on query results using:
+
+Matplotlib or Seaborn
+
+Automatically decide visualization type based on query intent:
+
+Trends → Line chart
+
+Comparisons → Bar chart
+
+Distribution → Histogram
+
+7. Guardrails & Safety
+
+Implement strict guardrails:
+
+Only allow queries relevant to the dataset/schema.
+
+If a query is out of scope, respond politely with a fallback message.
+
+Validate:
+
+SQL syntax
+
+Table/column existence
+
+Prevent:
+
+Hallucinated tables/columns
+
+Arbitrary code execution
+
+8. Read-Only Enforcement (Critical)
+
+The agent must operate in strict read-only mode:
+
+Allow only SELECT queries.
+
+Explicitly block:
+
+DML: INSERT, UPDATE, DELETE
+
+DDL: CREATE, DROP, ALTER
+
+If such operations are requested:
+
+Reject with a clear and polite message.
+
+Non-Functional Requirements
+
+Lightweight and fast (POC-friendly)
+
+Modular design for future extensibility (e.g., Snowflake integration)
+
+Clear logging for debugging (SQL generated, execution steps)
+
+Expected Output Behavior
+
+For each user query:
+
+Convert text → SQL
+
+Execute SQL on SQLite
+
+Return:
+
+Query result (table)
+
+Natural language explanation
+
+Visualization (if applicable)
+
+Optional Enhancements (Nice-to-Have)
+
+Add human-in-the-loop validation before query execution
+
+Add semantic layer (business-friendly column names)
+
+Add query history / session memory
