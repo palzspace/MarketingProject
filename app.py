@@ -82,13 +82,13 @@ if prompt := st.chat_input("Ask a question about marketing campaigns…"):
     with st.chat_message("assistant"):
         with st.spinner("Crunching the numbers… 🔍"):
             try:
+                messages = list(st.session_state.chat_history) + [
+                    HumanMessage(content=prompt),
+                ]
                 response = st.session_state.agent.invoke(
-                    {
-                        "input": prompt,
-                        "chat_history": st.session_state.chat_history,
-                    }
+                    {"messages": messages}
                 )
-                output = response["output"]
+                output = response["messages"][-1].content
                 st.markdown(output)
 
                 # Attach data artefacts

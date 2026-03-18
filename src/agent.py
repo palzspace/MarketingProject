@@ -2,11 +2,9 @@
 
 import logging
 
-import pandas as pd
-from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain.tools import tool
 from langchain_anthropic import ChatAnthropic
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langgraph.prebuilt import create_react_agent
 
 from src.config import ANTHROPIC_MODEL, SCHEMA_DESCRIPTION
 from src.database import execute_query
@@ -100,28 +98,15 @@ RULES
 
 # ── Agent factory ────────────────────────────────────────────────────────
 
-def create_agent() -> AgentExecutor:
-    """Build and return a ready-to-invoke LangChain agent."""
+def create_agent():
+    """Build and return a ready-to-invoke LangGraph ReAct agent."""
     llm = ChatAnthropic(model=ANTHROPIC_MODEL, temperature=0)
     tools = [run_sql_query, generate_chart]
 
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", _SYSTEM_PROMPT),
-            MessagesPlaceholder(variable_name="chat_history", optional=True),
-            ("human", "{input}"),
-            MessagesPlaceholder(variable_name="agent_scratchpad"),
-        ]
-    )
-
-    agent = create_tool_calling_agent(llm, tools, prompt)
-
-    return AgentExecutor(
-        agent=agent,
+    return create_react_agent(
+        model=llm,
         tools=tools,
-        verbose=True,
-        max_iterations=6,
-        handle_parsing_errors=True,
+        prompt=_SYSTEM_PROMPT,
     )
 
 
