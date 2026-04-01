@@ -1,7 +1,7 @@
 """Chart generation from query results.
 
-Keeps Matplotlib in the non-interactive Agg backend so Streamlit
-can safely render the figures as images.
+Uses the non-interactive Agg backend so Streamlit can safely render
+figures as in-memory PNG images.
 """
 
 import io
@@ -15,7 +15,6 @@ matplotlib.use("Agg")
 
 logger = logging.getLogger(__name__)
 
-# A little visual polish never hurt anyone
 plt.rcParams.update(
     {
         "figure.facecolor": "white",
@@ -35,15 +34,7 @@ def create_chart(
     x_col: str | None = None,
     y_col: str | None = None,
 ) -> io.BytesIO:
-    """Create a chart and return it as a PNG bytes buffer.
-
-    Parameters
-    ----------
-    df : DataFrame with query results.
-    chart_type : One of bar, line, histogram, pie.
-    title : Chart title.
-    x_col / y_col : Column names for the axes. Auto-detected when *None*.
-    """
+    """Create a chart and return it as a PNG bytes buffer."""
     chart_type = chart_type.lower().strip()
     if chart_type not in _VALID_CHART_TYPES:
         logger.warning("Unknown chart type '%s' — falling back to bar.", chart_type)
@@ -53,14 +44,13 @@ def create_chart(
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    if chart_type == "bar":
-        _draw_bar(ax, df, x_col, y_col)
-    elif chart_type == "line":
-        _draw_line(ax, df, x_col, y_col)
-    elif chart_type == "histogram":
-        _draw_histogram(ax, df, y_col or x_col)
-    elif chart_type == "pie":
-        _draw_pie(ax, df, x_col, y_col)
+    draw = {
+        "bar": _draw_bar,
+        "line": _draw_line,
+        "histogram": _draw_histogram,
+        "pie": _draw_pie,
+    }
+    draw[chart_type](ax, df, x_col, y_col)
 
     ax.set_title(title or f"{y_col} by {x_col}", fontsize=14, fontweight="bold")
     fig.tight_layout()
@@ -74,9 +64,8 @@ def create_chart(
     return buf
 
 
-# ---------------------------------------------------------------------------
-# Private helpers — one per chart type keeps things readable
-# ---------------------------------------------------------------------------
+# ── Private helpers (one per chart type) ─────────────────────────────────
+
 
 def _resolve_columns(
     df: pd.DataFrame,
@@ -106,7 +95,8 @@ def _draw_line(ax, df: pd.DataFrame, x: str, y: str) -> None:
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
 
 
-def _draw_histogram(ax, df: pd.DataFrame, col: str) -> None:
+def _draw_histogram(ax, df: pd.DataFrame, _x: str, y: str) -> None:
+    col = y or _x
     ax.hist(df[col], bins=15, color="#6554C0", edgecolor="white")
     ax.set_xlabel(col)
     ax.set_ylabel("Frequency")
@@ -114,4 +104,4 @@ def _draw_histogram(ax, df: pd.DataFrame, col: str) -> None:
 
 def _draw_pie(ax, df: pd.DataFrame, x: str, y: str) -> None:
     ax.pie(df[y], labels=df[x].astype(str), autopct="%1.1f%%", startangle=140)
-    ax.set_ylabel("")  # pie charts don't need a y-label
+    ax.set_ylabel("")
